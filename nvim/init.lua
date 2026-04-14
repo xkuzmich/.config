@@ -23,10 +23,33 @@ vim.opt.smartcase = true
 vim.opt.inccommand = "split"
 vim.opt.signcolumn = "yes"
 vim.opt.cmdheight = 2
+vim.opt.showtabline = 2
+
+function _G.custom_tabline()
+  local s = ""
+  for i = 1, vim.fn.tabpagenr("$") do
+    local winnr = vim.fn.tabpagewinnr(i)
+    local cwd = vim.fn.getcwd(winnr, i)
+    local project = vim.fn.fnamemodify(cwd, ":t")
+    local bufnr = vim.fn.tabpagebuflist(i)[winnr]
+    local fname = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ":t")
+    if fname == "" then fname = "[No Name]" end
+
+    if i == vim.fn.tabpagenr() then
+      s = s .. "%#TabLineSel#"
+    else
+      s = s .. "%#TabLine#"
+    end
+    s = s .. " " .. i .. ": " .. project .. " | " .. fname .. " "
+  end
+  s = s .. "%#TabLineFill#"
+  return s
+end
+vim.o.tabline = "%!v:lua.custom_tabline()"
 vim.keymap.set("n", "<space><space>x", "<cmd>source %<CR>")
 vim.keymap.set("n", "<space>x", ":.lua<CR>")
 vim.keymap.set("v", "<space>x", ":lua<CR>")
-vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
+vim.keymap.set("n", "<leader>pv", "<cmd>Oil<CR>", { desc = "File explorer (Oil)" })
 
 vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
 vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "References" })
