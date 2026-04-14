@@ -1,6 +1,17 @@
 require("config.lazy")
 
-vim.lsp.enable({'lua', 'clangd', 'ty', 'ruff', 'ansiblels', 'yamlls', 'terraformls', 'puppet'})
+vim.lsp.enable({'lua', 'clangd', 'ty', 'ruff', 'ansiblels', 'yamlls', 'terraformls', 'puppet', 'helm_ls'})
+
+-- Detect Helm templates as filetype "helm"
+vim.filetype.add({
+  pattern = {
+    ['.*/templates/.*%.yaml'] = 'helm',
+    ['.*/templates/.*%.yml'] = 'helm',
+    ['.*/templates/.*%.tpl'] = 'helm',
+    ['helmfile.*%.yaml'] = 'helm',
+    ['helmfile.*%.yml'] = 'helm',
+  },
+})
 vim.lsp.config("lua", {
   settings = {
     Lua = {
@@ -78,6 +89,24 @@ end, { desc = "Run Python file" })
 vim.keymap.set("n", "<leader>rt", function()
   vim.cmd("split | terminal pytest " .. vim.fn.expand("%") .. " -v")
 end, { desc = "Run pytest" })
+
+-- Auto-detect Python venv from cwd
+vim.api.nvim_create_autocmd("DirChanged", {
+  pattern = "*",
+  callback = function()
+    local venv = vim.fn.getcwd() .. "/.venv"
+    if vim.fn.isdirectory(venv) == 1 then
+      vim.env.VIRTUAL_ENV = venv
+      vim.env.PATH = venv .. "/bin:" .. vim.env.PATH
+    end
+  end,
+})
+-- Also check on startup
+local venv = vim.fn.getcwd() .. "/.venv"
+if vim.fn.isdirectory(venv) == 1 then
+  vim.env.VIRTUAL_ENV = venv
+  vim.env.PATH = venv .. "/bin:" .. vim.env.PATH
+end
 
 vim.api.nvim_create_autocmd("BufWritePre", {
   pattern = "*.py",
