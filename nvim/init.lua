@@ -2,14 +2,29 @@ require("config.lazy")
 
 vim.lsp.enable({'lua', 'clangd', 'ty', 'ruff', 'ansiblels', 'yamlls', 'terraformls', 'puppet', 'helm_ls'})
 
--- Detect Helm templates as filetype "helm"
 vim.filetype.add({
   pattern = {
+    -- Helm
     ['.*/templates/.*%.yaml'] = 'helm',
     ['.*/templates/.*%.yml'] = 'helm',
     ['.*/templates/.*%.tpl'] = 'helm',
     ['helmfile.*%.yaml'] = 'helm',
     ['helmfile.*%.yml'] = 'helm',
+    -- YAML variants
+    ['docker%-compose.*%.ya?ml'] = 'yaml.docker-compose',
+    ['compose.*%.ya?ml'] = 'yaml.docker-compose',
+    ['%.gitlab%-ci.*%.ya?ml'] = 'yaml.gitlab',
+    ['values.*%.ya?ml'] = 'yaml.helm-values',
+  },
+  filename = {
+    ['docker-compose.yml'] = 'yaml.docker-compose',
+    ['docker-compose.yaml'] = 'yaml.docker-compose',
+    ['.gitlab-ci.yml'] = 'yaml.gitlab',
+    ['values.yaml'] = 'yaml.helm-values',
+    ['values.yml'] = 'yaml.helm-values',
+  },
+  extension = {
+    tfvars = 'terraform-vars',
   },
 })
 vim.lsp.config("lua", {
@@ -74,21 +89,11 @@ vim.api.nvim_create_autocmd("TextYankPost", {
   desc = 'Highlight when yanking (copying) text',
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
   callback = function()
-    vim.highlight.on_yank()
+    vim.hl.on_yank()
   end,
   })
 
 vim.keymap.set({"n", "i", "v"}, "<C-s>", "<cmd>w<CR>", { desc = "Save file" })
-
--- Run current Python file in a terminal split
-vim.keymap.set("n", "<leader>rp", function()
-  vim.cmd("split | terminal python3 " .. vim.fn.expand("%"))
-end, { desc = "Run Python file" })
-
--- Run pytest on current file
-vim.keymap.set("n", "<leader>rt", function()
-  vim.cmd("split | terminal pytest " .. vim.fn.expand("%") .. " -v")
-end, { desc = "Run pytest" })
 
 -- Auto-detect Python venv from cwd
 vim.api.nvim_create_autocmd("DirChanged", {
@@ -107,10 +112,3 @@ if vim.fn.isdirectory(venv) == 1 then
   vim.env.VIRTUAL_ENV = venv
   vim.env.PATH = venv .. "/bin:" .. vim.env.PATH
 end
-
-vim.api.nvim_create_autocmd("BufWritePre", {
-  pattern = "*.py",
-  callback = function()
-    vim.lsp.buf.format({ name = "ruff" })
-  end,
-})

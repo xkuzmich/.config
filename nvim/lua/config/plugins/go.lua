@@ -3,6 +3,7 @@ return {
     "ray-x/go.nvim",
     dependencies = {
       "ray-x/guihua.lua",
+      "mfussenegger/nvim-dap",
     },
     config = function()
       require("go").setup({
@@ -10,14 +11,6 @@ return {
         lsp_gofumpt = true,
         lsp_on_attach = true,
         dap_debug = true,
-      })
-      local format_sync_grp = vim.api.nvim_create_augroup("GoFormat", {})
-      vim.api.nvim_create_autocmd("BufWritePre", {
-        pattern = "*.go",
-        callback = function()
-          require('go.format').goimport()
-        end,
-        group = format_sync_grp,
       })
     end,
     event = {"CmdlineEnter"},
